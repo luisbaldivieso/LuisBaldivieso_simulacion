@@ -5,14 +5,25 @@ from tkinter import messagebox
 # FUNCIONES
 # ===============================
 
-def abrir_calculadora():
-    messagebox.showinfo("Calculadora", "Próximamente estará disponible.")
+import subprocess
+import os
 
+def abrir_calculadora():
+    subprocess.Popen([
+        "python",
+        r"C:\Users\LENOVO\Desktop\Simulacion\proyecto_final\Calculadora\calculadora.py"
+    ])
 def abrir_ruleta():
-    messagebox.showinfo("Monte Carlo", "Próximamente estará disponible.")
+    subprocess.Popen([
+        "python",
+        r"C:\Users\LENOVO\Desktop\Simulacion\proyecto_final\Ruleta_Monte_Carlo\ruleta.py"
+    ])
 
 def abrir_covid():
-    messagebox.showinfo("COVID", "Próximamente estará disponible.")
+    subprocess.Popen([
+        "python",
+        r"C:\Users\LENOVO\Desktop\Simulacion\proyecto_final\Simulacion_COVID\covid.py"
+    ])
 
 def salir():
     ventana.destroy()
