@@ -16,7 +16,7 @@ def abrir_calculadora():
 def abrir_ruleta():
     subprocess.Popen([
         "python",
-        r"C:\Users\LENOVO\Desktop\Simulacion\proyecto_final\Ruleta_Monte_Carlo\ruleta.py"
+        r"C:\Users\LENOVO\Desktop\Simulacion\proyecto_final\ruleta\ruleta.py"
     ])
 
 def abrir_covid():

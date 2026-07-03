@@ -18,22 +18,39 @@ def productos_medios():
     ])
 
 def multiplicador_constante():
-    messagebox.showinfo("Multiplicador Constante", "Módulo en construcción")
-
+    subprocess.Popen([
+        "python",
+        r"C:\Users\LENOVO\Desktop\Simulacion\proyecto_final\Calculadora\multiplicador_constante.py"
+    ])
 def congruencial_lineal():
-    messagebox.showinfo("Congruencial Lineal", "Módulo en construcción")
+    subprocess.Popen([
+        "python",
+        r"C:\Users\LENOVO\Desktop\Simulacion\proyecto_final\Calculadora\congruencial_lineal.py"
+    ])
 
 def congruencial_multiplicativo():
-    messagebox.showinfo("Congruencial Multiplicativo", "Módulo en construcción")
+    subprocess.Popen([
+        "python",
+        r"C:\Users\LENOVO\Desktop\Simulacion\proyecto_final\Calculadora\congruencial_multiplicativo.py"
+    ])
 
 def congruencial_aditivo():
-    messagebox.showinfo("Congruencial Aditivo", "Módulo en construcción")
+    subprocess.Popen([
+        "python",
+        r"C:\Users\LENOVO\Desktop\Simulacion\proyecto_final\Calculadora\congruencial_aditivo.py"
+    ])
 
 def congruencial_no_lineal():
-    messagebox.showinfo("Congruencial No Lineal", "Módulo en construcción")
+    subprocess.Popen([
+        "python",
+        r"C:\Users\LENOVO\Desktop\Simulacion\proyecto_final\Calculadora\congruencial_no_lineal.py"
+    ])
 
 def prueba_media():
-    messagebox.showinfo("Prueba Media", "Módulo en construcción")
+    subprocess.Popen([
+        "python",
+        r"C:\Users\LENOVO\Desktop\Simulacion\proyecto_final\Calculadora\prueba_media.py"
+    ])
 
 def prueba_varianza():
     messagebox.showinfo("Prueba Varianza", "Módulo en construcción")
