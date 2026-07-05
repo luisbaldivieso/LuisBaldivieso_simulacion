@@ -1,632 +1,202 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-from motor_ruleta import simular_giro
+from motor_ruleta import jugar
 from estrategias import crear_estrategia
 from estadisticas import Estadisticas
-from graficos import mostrar_todos
 
 
-# ==========================================
-# VARIABLES GLOBALES
-# ==========================================
+class RuletaApp:
 
-estadisticas = Estadisticas()
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Ruleta Monte Carlo")
+        self.root.geometry("1200x700")
+        self.root.minsize(1000, 650)
 
-numeros = []
+        self.estadisticas = Estadisticas(1000)
+        self.estrategia = crear_estrategia("Martingala", 10)
 
-rojos = 0
-negros = 0
-verdes = 0
+        self.var_capital = tk.IntVar(value=1000)
+        self.var_apuesta = tk.IntVar(value=10)
+        self.var_tipo = tk.StringVar(value="color")
+        self.var_valor = tk.StringVar(value="Rojo")
+        self.var_estrategia = tk.StringVar(value="Martingala")
 
+        self.ultimo_resultado = None
+        self.casillas = {}
 
-# ==========================================
-# FUNCIONES
-# ==========================================
+        self.crear_interfaz()
 
-def simular():
+    def crear_interfaz(self):
+        self.panel_izquierdo = tk.Frame(self.root, width=260, bg="#ECECEC")
+        self.panel_izquierdo.pack(side="left", fill="y")
 
-    global numeros
-    global rojos
-    global negros
-    global verdes
+        self.panel_derecho = tk.Frame(self.root)
+        self.panel_derecho.pack(side="right", fill="both", expand=True)
 
-    tabla.delete(*tabla.get_children())
+        self.crear_panel_control()
+        self.crear_canvas()
 
-    try:
+    def crear_panel_control(self):
+        tk.Label(
+            self.panel_izquierdo,
+            text="RULETA",
+            font=("Arial", 18, "bold"),
+            bg="#ECECEC"
+        ).pack(pady=10)
 
-        capital = int(entry_capital.get())
+        tk.Label(self.panel_izquierdo, text="Capital Inicial", bg="#ECECEC").pack()
+        tk.Entry(self.panel_izquierdo, textvariable=self.var_capital).pack(fill="x", padx=15)
 
-        apuesta = int(entry_apuesta.get())
+        tk.Label(self.panel_izquierdo, text="Monto Apuesta", bg="#ECECEC").pack(pady=(10, 0))
+        self.entry_apuesta = tk.Entry(self.panel_izquierdo, textvariable=self.var_apuesta)
+        self.entry_apuesta.pack(fill="x", padx=15)
 
-        giros = int(entry_giros.get())
+        tk.Label(self.panel_izquierdo, text="Estrategia", bg="#ECECEC").pack(pady=(10, 0))
+        self.combo_estrategia = ttk.Combobox(
+            self.panel_izquierdo,
+            textvariable=self.var_estrategia,
+            state="readonly",
+            values=["Martingala", "Fibonacci", "DAlembert", "Fija"],
+        )
+        self.combo_estrategia.pack(fill="x", padx=15)
 
-    except:
+        tk.Label(self.panel_izquierdo, text="Tipo de apuesta", bg="#ECECEC").pack(pady=(10, 0))
+        self.combo_tipo = ttk.Combobox(
+            self.panel_izquierdo,
+            textvariable=self.var_tipo,
+            state="readonly",
+            values=["color", "numero", "paridad", "mitad", "docena", "columna"],
+        )
+        self.combo_tipo.pack(fill="x", padx=15)
 
-        messagebox.showerror(
+        tk.Label(self.panel_izquierdo, text="Valor", bg="#ECECEC").pack(pady=(10, 0))
+        self.entry_valor = tk.Entry(self.panel_izquierdo, textvariable=self.var_valor)
+        self.entry_valor.pack(fill="x", padx=15)
 
-            "Error",
+        tk.Button(
+            self.panel_izquierdo,
+            text="🎲 GIRAR",
+            bg="green",
+            fg="white",
+            font=("Arial", 12, "bold"),
+            command=self.girar,
+        ).pack(fill="x", padx=15, pady=20)
 
-            "Ingrese valores numéricos."
+        self.lbl_resultado = tk.Label(
+            self.panel_izquierdo,
+            text="Esperando jugada...",
+            bg="#ECECEC",
+            justify="left",
+        )
+        self.lbl_resultado.pack(pady=10)
 
+        self.lista = tk.Listbox(self.panel_izquierdo, height=10)
+        self.lista.pack(fill="x", padx=15, pady=(10, 0))
+
+        self.lbl_estadisticas = tk.Label(
+            self.panel_izquierdo,
+            text="Estadísticas",
+            bg="#ECECEC",
+            justify="left",
+        )
+        self.lbl_estadisticas.pack(pady=10)
+
+    def crear_canvas(self):
+        self.canvas = tk.Canvas(self.panel_derecho, bg="#0B6623")
+        self.canvas.pack(fill="both", expand=True)
+        self.canvas.bind("<Configure>", self.dibujar_mesa)
+
+    def dibujar_mesa(self, event=None):
+        self.canvas.delete("all")
+
+        ancho = self.canvas.winfo_width()
+        alto = self.canvas.winfo_height()
+
+        self.canvas.create_text(ancho // 2, 30, text="MESA DE RULETA", fill="white", font=("Arial", 20, "bold"))
+        self.canvas.create_rectangle(50, 60, ancho - 50, alto - 80, outline="gold", width=3)
+
+        if self.ultimo_resultado is None:
+            self.canvas.create_text(ancho // 2, alto // 2, text="La mesa se dibujará aquí", fill="white", font=("Arial", 18))
+            return
+
+        self.canvas.create_text(ancho // 2, alto // 2 - 40, text="Último resultado", fill="white", font=("Arial", 16, "bold"))
+        self.canvas.create_text(
+            ancho // 2,
+            alto // 2,
+            text=f"Número: {self.ultimo_resultado['numero']}\nColor: {self.ultimo_resultado['color']}\n{'GANÓ' if self.ultimo_resultado['gano'] else 'PERDIÓ'}",
+            fill="white",
+            font=("Arial", 18),
         )
 
-        return
-
-    if capital <= 0:
-
-        messagebox.showerror(
-
-            "Error",
-
-            "Capital incorrecto."
-
-        )
-
-        return
-
-    if apuesta <= 0:
-
-        messagebox.showerror(
-
-            "Error",
-
-            "Apuesta incorrecta."
-
-        )
-
-        return
-
-    if giros <= 0:
-
-        messagebox.showerror(
-
-            "Error",
-
-            "Cantidad de giros incorrecta."
-
-        )
-
-        return
-
-    estrategia_obj = crear_estrategia(
-
-        estrategia.get(),
-
-        apuesta
-
-    )
-
-    estadisticas.reiniciar()
-
-    estadisticas.iniciar(capital)
-
-    numeros = []
-
-    rojos = 0
-
-    negros = 0
-
-    verdes = 0
-
-    for giro in range(giros):
-
-        apuesta_actual = estrategia_obj.obtener_apuesta()
-
-        datos = simular_giro(
-
-            capital,
-
-            apuesta_actual,
-
-            tipo_apuesta.get()
-
-        )
-
-        capital = datos["capital"]
-
-        if datos["gano"]:
-
-            estrategia_obj.ganar()
-
-        else:
-
-            estrategia_obj.perder()
-
-        estadisticas.registrar(
-
-            capital,
-
-            datos["gano"],
-
-            apuesta_actual
-
-        )
-
-        numeros.append(
-
-            datos["numero"]
-
-        )
-
-        if datos["color"] == "Rojo":
-
-            rojos += 1
-
-        elif datos["color"] == "Negro":
-
-            negros += 1
-
-        else:
-
-            verdes += 1
-
-        tabla.insert(
-
-            "",
-
-            "end",
-
-            values=(
-
-                giro + 1,
-
-                datos["numero"],
-
-                datos["color"],
-
-                datos["resultado"],
-
-                capital
-
+    def redibujar(self):
+        self.dibujar_mesa()
+
+    def _valor_para_apuesta(self):
+        tipo = self.var_tipo.get().lower()
+        valor = self.var_valor.get().strip()
+
+        if tipo == "mitad":
+            if valor.lower() in {"1", "1-18", "primera", "primera mitad"}:
+                return 1
+            return 2
+
+        if tipo in {"docena", "columna", "numero"}:
+            try:
+                return int(valor)
+            except ValueError:
+                return valor
+
+        return valor
+
+    def actualizar_estadisticas(self):
+        resumen = self.estadisticas.resumen()
+        self.lbl_estadisticas.config(
+            text=(
+                f"Capital: {resumen['capital']}\n"
+                f"Jugadas: {resumen['jugadas']}\n"
+                f"Aciertos: {resumen['ganadas']} ({resumen['porcentaje']}%)\n"
+                f"Racha ganadora: {resumen['racha_ganadora']}\n"
+                f"Racha perdedora: {resumen['racha_perdedora']}"
             )
-
         )
 
-    resumen = estadisticas.resumen()
-
-    lbl_giros.config(
-
-        text=f"Giros: {resumen['giros']}"
-
-    )
-
-    lbl_ganadas.config(
-
-        text=f"Ganadas: {resumen['ganadas']}"
-
-    )
-
-    lbl_perdidas.config(
-
-        text=f"Perdidas: {resumen['perdidas']}"
-
-    )
-
-    lbl_capital.config(
-
-        text=f"Capital Final: {resumen['capital_final']}"
-
-    )
-
-    lbl_porcentaje.config(
-
-        text=f"Aciertos: {resumen['porcentaje_aciertos']:.2f}%"
-
-    )
-
-    mostrar_todos(
-
-        estadisticas.historial,
-
-        estadisticas.ganadas,
-
-        estadisticas.perdidas,
-
-        rojos,
-
-        negros,
-
-        verdes,
-
-        numeros
-
-    )
-
-
-def limpiar():
-
-    entry_capital.delete(
-
-        0,
-
-        tk.END
-
-    )
-
-    entry_apuesta.delete(
-
-        0,
-
-        tk.END
-
-    )
-
-    entry_giros.delete(
-
-        0,
-
-        tk.END
-
-    )
-
-    entry_capital.insert(
-
-        0,
-
-        "1000"
-
-    )
-
-    entry_apuesta.insert(
-
-        0,
-
-        "10"
-
-    )
-
-    entry_giros.insert(
-
-        0,
-
-        "100"
-
-    )
-
-    tipo_apuesta.set(
-
-        "Rojo"
-
-    )
-
-    estrategia.set(
-
-        "Apuesta fija"
-
-    )
-
-    tabla.delete(
-
-        *tabla.get_children()
-
-    )
-
-    lbl_giros.config(
-
-        text="Giros:"
-
-    )
-
-    lbl_ganadas.config(
-
-        text="Ganadas:"
-
-    )
-
-    lbl_perdidas.config(
-
-        text="Perdidas:"
-
-    )
-
-    lbl_capital.config(
-
-        text="Capital Final:"
-
-    )
-
-    lbl_porcentaje.config(
-
-        text="Aciertos:"
-
-    )
-
-
-def salir():
-
-    ventana.destroy()
-
-
-# ==========================================
-# VENTANA
-# ==========================================
-
-ventana = tk.Tk()
-
-ventana.title("Ruleta Monte Carlo")
-
-ventana.geometry("1200x850")
-
-ventana.resizable(False, False)
-
-titulo = tk.Label(
-
-    ventana,
-
-    text="RULETA MONTE CARLO",
-
-    font=("Arial",20,"bold")
-
-)
-
-titulo.pack(pady=10)
-
-frame = tk.Frame(
-
-    ventana
-
-)
-
-frame.pack()
-# ==========================================
-# DATOS DE ENTRADA
-# ==========================================
-
-tk.Label(
-    frame,
-    text="Capital Inicial:"
-).grid(row=0, column=0, padx=10, pady=5)
-
-entry_capital = tk.Entry(frame, width=12)
-entry_capital.insert(0, "1000")
-entry_capital.grid(row=0, column=1)
-
-
-tk.Label(
-    frame,
-    text="Apuesta Inicial:"
-).grid(row=1, column=0, padx=10, pady=5)
-
-entry_apuesta = tk.Entry(frame, width=12)
-entry_apuesta.insert(0, "10")
-entry_apuesta.grid(row=1, column=1)
-
-
-tk.Label(
-    frame,
-    text="Número de Giros:"
-).grid(row=2, column=0, padx=10, pady=5)
-
-entry_giros = tk.Entry(frame, width=12)
-entry_giros.insert(0, "100")
-entry_giros.grid(row=2, column=1)
-
-
-# ==========================================
-# TIPO DE APUESTA
-# ==========================================
-
-tk.Label(
-    frame,
-    text="Tipo de Apuesta:"
-).grid(row=0, column=2, padx=15)
-
-tipo_apuesta = tk.StringVar()
-
-combo_tipo = ttk.Combobox(
-    frame,
-    textvariable=tipo_apuesta,
-    state="readonly",
-    width=18
-)
-
-combo_tipo["values"] = (
-    "Rojo",
-    "Negro",
-    "Verde"
-)
-
-combo_tipo.current(0)
-
-combo_tipo.grid(row=0, column=3)
-
-
-# ==========================================
-# ESTRATEGIAS
-# ==========================================
-
-tk.Label(
-    frame,
-    text="Estrategia:"
-).grid(row=1, column=2)
-
-estrategia = tk.StringVar()
-
-combo_estrategia = ttk.Combobox(
-    frame,
-    textvariable=estrategia,
-    state="readonly",
-    width=18
-)
-
-combo_estrategia["values"] = (
-    "Apuesta fija",
-    "Martingala",
-    "D'Alembert",
-    "Paroli"
-)
-
-combo_estrategia.current(0)
-
-combo_estrategia.grid(row=1, column=3)
-
-
-# ==========================================
-# BOTONES
-# ==========================================
-
-frame_botones = tk.Frame(ventana)
-
-frame_botones.pack(pady=15)
-
-tk.Button(
-    frame_botones,
-    text="Simular",
-    bg="green",
-    fg="white",
-    width=15,
-    font=("Arial",10,"bold"),
-    command=simular
-).grid(row=0,column=0,padx=5)
-
-tk.Button(
-    frame_botones,
-    text="Limpiar",
-    bg="orange",
-    fg="white",
-    width=15,
-    font=("Arial",10,"bold"),
-    command=limpiar
-).grid(row=0,column=1,padx=5)
-
-tk.Button(
-    frame_botones,
-    text="Salir",
-    bg="red",
-    fg="white",
-    width=15,
-    font=("Arial",10,"bold"),
-    command=salir
-).grid(row=0,column=2,padx=5)
-
-
-# ==========================================
-# TABLA
-# ==========================================
-
-columnas = (
-
-    "Giro",
-
-    "Número",
-
-    "Color",
-
-    "Resultado",
-
-    "Capital"
-
-)
-
-tabla = ttk.Treeview(
-
-    ventana,
-
-    columns=columnas,
-
-    show="headings",
-
-    height=15
-
-)
-
-for col in columnas:
-
-    tabla.heading(col,text=col)
-
-    tabla.column(col,width=180,anchor="center")
-
-tabla.pack(pady=10)
-
-
-# ==========================================
-# ESTADISTICAS
-# ==========================================
-
-frame_est = tk.LabelFrame(
-
-    ventana,
-
-    text="Estadísticas",
-
-    font=("Arial",11,"bold")
-
-)
-
-frame_est.pack(
-
-    fill="x",
-
-    padx=10,
-
-    pady=10
-
-)
-
-lbl_giros = tk.Label(
-
-    frame_est,
-
-    text="Giros:",
-
-    font=("Arial",11)
-
-)
-
-lbl_giros.grid(row=0,column=0,padx=20,pady=5)
-
-lbl_ganadas = tk.Label(
-
-    frame_est,
-
-    text="Ganadas:",
-
-    font=("Arial",11)
-
-)
-
-lbl_ganadas.grid(row=0,column=1,padx=20)
-
-lbl_perdidas = tk.Label(
-
-    frame_est,
-
-    text="Perdidas:",
-
-    font=("Arial",11)
-
-)
-
-lbl_perdidas.grid(row=0,column=2,padx=20)
-
-lbl_capital = tk.Label(
-
-    frame_est,
-
-    text="Capital Final:",
-
-    font=("Arial",11)
-
-)
-
-lbl_capital.grid(row=1,column=0,padx=20)
-
-lbl_porcentaje = tk.Label(
-
-    frame_est,
-
-    text="Aciertos:",
-
-    font=("Arial",11)
-
-)
-
-lbl_porcentaje.grid(row=1,column=1,padx=20)
-
-
-# ==========================================
-# MAIN
-# ==========================================
-
-ventana.mainloop()
+    def girar(self):
+        try:
+            monto = int(self.var_apuesta.get())
+            if monto <= 0:
+                raise ValueError
+        except ValueError:
+            messagebox.showerror("Error", "Ingrese una apuesta válida.")
+            return
+
+        nombre = self.var_estrategia.get()
+        self.estrategia = crear_estrategia(nombre, monto)
+
+        tipo = self.var_tipo.get().lower()
+        valor = self._valor_para_apuesta()
+
+        resultado = jugar(tipo, valor, monto)
+        self.estadisticas.registrar(resultado)
+
+        self.ultimo_resultado = resultado
+        self.redibujar()
+
+        numero = resultado["numero"]
+        texto = f"Número: {numero}\nColor: {resultado['color']}\n"
+        texto += "Resultado: GANÓ" if resultado["gano"] else "Resultado: PERDIÓ"
+        self.lbl_resultado.config(text=texto)
+
+        self.lista.insert(tk.END, f"{numero} ({resultado['color']})")
+        if self.lista.size() > 20:
+            self.lista.delete(0)
+
+        self.var_apuesta.set(int(self.estrategia.actualizar(resultado["gano"])))
+        self.actualizar_estadisticas()
+
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = RuletaApp(root)
+    root.mainloop()

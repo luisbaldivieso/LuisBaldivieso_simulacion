@@ -1,180 +1,146 @@
-# ===========================================
-# ESTADISTICAS DE LA RULETA
-# ===========================================
+# ==========================================
+# estadisticas.py
+# Control de estadísticas y capital
+# ==========================================
 
 class Estadisticas:
 
-    def __init__(self):
+    def __init__(self, capital_inicial):
 
-        self.reiniciar()
+        self.capital_inicial = capital_inicial
+        self.capital = capital_inicial
 
-    # =======================================
-
-    def reiniciar(self):
-
-        self.giros = 0
-
+        self.jugadas = 0
         self.ganadas = 0
-
         self.perdidas = 0
-
-        self.capital_inicial = 0
-
-        self.capital_final = 0
-
-        self.capital_maximo = 0
-
-        self.capital_minimo = 0
-
-        self.ganancia_maxima = 0
-
-        self.perdida_maxima = 0
 
         self.historial = []
 
-    # =======================================
+        self.racha_ganadora = 0
+        self.racha_perdedora = 0
 
-    def iniciar(self, capital):
+        self.max_racha_ganadora = 0
+        self.max_racha_perdedora = 0
 
-        self.capital_inicial = capital
+    def registrar(self, resultado):
 
-        self.capital_final = capital
+        self.jugadas += 1
 
-        self.capital_maximo = capital
+        numero = resultado["numero"]
+        gano = resultado["gano"]
+        ganancia = resultado["ganancia"]
 
-        self.capital_minimo = capital
+        self.capital += ganancia
 
-        self.historial = [capital]
+        self.historial.append(numero)
 
-    # =======================================
-
-    def registrar(self, capital, gano, apuesta):
-
-        self.giros += 1
-
-        self.capital_final = capital
-
-        self.historial.append(capital)
+        # Guardar solo los últimos 20 números
+        if len(self.historial) > 20:
+            self.historial.pop(0)
 
         if gano:
 
             self.ganadas += 1
 
-            if apuesta > self.ganancia_maxima:
+            self.racha_ganadora += 1
+            self.racha_perdedora = 0
 
-                self.ganancia_maxima = apuesta
+            if self.racha_ganadora > self.max_racha_ganadora:
+                self.max_racha_ganadora = self.racha_ganadora
 
         else:
 
             self.perdidas += 1
 
-            if apuesta > self.perdida_maxima:
+            self.racha_perdedora += 1
+            self.racha_ganadora = 0
 
-                self.perdida_maxima = apuesta
-
-        if capital > self.capital_maximo:
-
-            self.capital_maximo = capital
-
-        if capital < self.capital_minimo:
-
-            self.capital_minimo = capital
-
-    # =======================================
+            if self.racha_perdedora > self.max_racha_perdedora:
+                self.max_racha_perdedora = self.racha_perdedora
 
     def porcentaje_aciertos(self):
 
-        if self.giros == 0:
-
+        if self.jugadas == 0:
             return 0
 
-        return (self.ganadas / self.giros) * 100
+        return round((self.ganadas / self.jugadas) * 100, 2)
 
-    # =======================================
+    def ultimo_numero(self):
 
-    def porcentaje_fallos(self):
+        if not self.historial:
+            return "-"
 
-        if self.giros == 0:
+        return self.historial[-1]
 
-            return 0
+    def obtener_historial(self):
 
-        return (self.perdidas / self.giros) * 100
+        return self.historial
 
-    # =======================================
+    def reiniciar(self):
 
-    def ganancia_total(self):
+        self.capital = self.capital_inicial
 
-        return self.capital_final - self.capital_inicial
+        self.jugadas = 0
+        self.ganadas = 0
+        self.perdidas = 0
 
-    # =======================================
+        self.historial.clear()
 
-    def promedio_por_giro(self):
+        self.racha_ganadora = 0
+        self.racha_perdedora = 0
 
-        if self.giros == 0:
-
-            return 0
-
-        return self.ganancia_total() / self.giros
-
-    # =======================================
+        self.max_racha_ganadora = 0
+        self.max_racha_perdedora = 0
 
     def resumen(self):
 
         return {
 
-            "giros": self.giros,
+            "capital": self.capital,
+
+            "jugadas": self.jugadas,
 
             "ganadas": self.ganadas,
 
             "perdidas": self.perdidas,
 
-            "capital_inicial": self.capital_inicial,
+            "porcentaje": self.porcentaje_aciertos(),
 
-            "capital_final": self.capital_final,
+            "racha_ganadora": self.max_racha_ganadora,
 
-            "capital_maximo": self.capital_maximo,
+            "racha_perdedora": self.max_racha_perdedora,
 
-            "capital_minimo": self.capital_minimo,
+            "ultimo": self.ultimo_numero(),
 
-            "ganancia_total": self.ganancia_total(),
-
-            "ganancia_maxima": self.ganancia_maxima,
-
-            "perdida_maxima": self.perdida_maxima,
-
-            "porcentaje_aciertos": self.porcentaje_aciertos(),
-
-            "porcentaje_fallos": self.porcentaje_fallos(),
-
-            "promedio_por_giro": self.promedio_por_giro()
+            "historial": self.historial
 
         }
 
 
-# ===========================================
+# ==========================================
 # PRUEBA
-# ===========================================
+# ==========================================
 
 if __name__ == "__main__":
 
-    est = Estadisticas()
+    stats = Estadisticas(1000)
 
-    est.iniciar(1000)
+    stats.registrar({
+        "numero": 18,
+        "gano": True,
+        "ganancia": 100
+    })
 
-    est.registrar(1010, True, 10)
+    stats.registrar({
+        "numero": 7,
+        "gano": False,
+        "ganancia": -100
+    })
 
-    est.registrar(990, False, 20)
+    stats.registrar({
+        "numero": 32,
+        "gano": True,
+        "ganancia": 100
+    })
 
-    est.registrar(1010, True, 20)
-
-    est.registrar(1030, True, 20)
-
-    datos = est.resumen()
-
-    print("\n========== ESTADÍSTICAS ==========\n")
-
-    for clave, valor in datos.items():
-
-        print(f"{clave}: {valor}")
-
-    print("\n==================================")
+    print(stats.resumen())

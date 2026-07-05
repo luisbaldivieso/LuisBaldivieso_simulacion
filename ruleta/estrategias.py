@@ -1,112 +1,110 @@
-# ===========================================
-# ESTRATEGIAS DE APUESTA
-# ===========================================
+# ==========================================
+# estrategias.py
+# Estrategias de Apuesta
+# ==========================================
 
-class EstrategiaBase:
+
+class Martingala:
+    """
+    Duplica la apuesta cuando pierde.
+    Reinicia al ganar.
+    """
 
     def __init__(self, apuesta_inicial):
-
         self.apuesta_inicial = apuesta_inicial
         self.apuesta_actual = apuesta_inicial
 
-    def ganar(self):
-        pass
+    def actualizar(self, gano):
 
-    def perder(self):
-        pass
+        if gano:
+            self.apuesta_actual = self.apuesta_inicial
+        else:
+            self.apuesta_actual *= 2
 
-    def obtener_apuesta(self):
         return self.apuesta_actual
 
     def reiniciar(self):
         self.apuesta_actual = self.apuesta_inicial
 
 
-# ===========================================
-# APUESTA FIJA
-# ===========================================
-
-class ApuestaFija(EstrategiaBase):
-
-    def ganar(self):
-        self.apuesta_actual = self.apuesta_inicial
-
-    def perder(self):
-        self.apuesta_actual = self.apuesta_inicial
-
-
-# ===========================================
-# MARTINGALA
-# Duplica la apuesta cuando pierde.
-# Reinicia al ganar.
-# ===========================================
-
-class Martingala(EstrategiaBase):
-
-    def ganar(self):
-        self.apuesta_actual = self.apuesta_inicial
-
-    def perder(self):
-        self.apuesta_actual *= 2
-
-
-# ===========================================
-# D'ALEMBERT
-# +1 unidad al perder
-# -1 unidad al ganar
-# ===========================================
-
-class DAlembert(EstrategiaBase):
-
-    def ganar(self):
-
-        if self.apuesta_actual > self.apuesta_inicial:
-
-            self.apuesta_actual -= self.apuesta_inicial
-
-    def perder(self):
-
-        self.apuesta_actual += self.apuesta_inicial
-
-
-# ===========================================
-# PAROLI
-# Duplica al ganar.
-# Reinicia al perder.
-# Máximo 3 victorias consecutivas.
-# ===========================================
-
-class Paroli(EstrategiaBase):
+class Fibonacci:
+    """
+    Estrategia Fibonacci.
+    """
 
     def __init__(self, apuesta_inicial):
 
-        super().__init__(apuesta_inicial)
+        self.apuesta_inicial = apuesta_inicial
+        self.secuencia = [1, 1]
+        self.posicion = 0
 
-        self.racha = 0
+    def apuesta(self):
 
-    def ganar(self):
+        while self.posicion >= len(self.secuencia):
+            self.secuencia.append(
+                self.secuencia[-1] + self.secuencia[-2]
+            )
 
-        self.racha += 1
+        return self.secuencia[self.posicion] * self.apuesta_inicial
 
-        if self.racha >= 3:
+    def actualizar(self, gano):
 
-            self.apuesta_actual = self.apuesta_inicial
-            self.racha = 0
-
+        if gano:
+            self.posicion = max(0, self.posicion - 2)
         else:
+            self.posicion += 1
 
-            self.apuesta_actual *= 2
+        return self.apuesta()
 
-    def perder(self):
+    def reiniciar(self):
+        self.posicion = 0
 
+
+class DAlembert:
+    """
+    Estrategia D'Alembert.
+    """
+
+    def __init__(self, apuesta_inicial):
+
+        self.apuesta_inicial = apuesta_inicial
+        self.apuesta_actual = apuesta_inicial
+
+    def actualizar(self, gano):
+
+        if gano:
+            self.apuesta_actual = max(
+                self.apuesta_inicial,
+                self.apuesta_actual - self.apuesta_inicial
+            )
+        else:
+            self.apuesta_actual += self.apuesta_inicial
+
+        return self.apuesta_actual
+
+    def reiniciar(self):
         self.apuesta_actual = self.apuesta_inicial
 
-        self.racha = 0
+
+class EstrategiaFija:
+    """
+    Siempre apuesta el mismo monto.
+    """
+
+    def __init__(self, apuesta):
+
+        self.apuesta = apuesta
+
+    def actualizar(self, gano):
+        return self.apuesta
+
+    def reiniciar(self):
+        pass
 
 
-# ===========================================
-# FABRICA DE ESTRATEGIAS
-# ===========================================
+# ==========================================
+# FÁBRICA DE ESTRATEGIAS
+# ==========================================
 
 def crear_estrategia(nombre, apuesta_inicial):
 
@@ -115,31 +113,31 @@ def crear_estrategia(nombre, apuesta_inicial):
     if nombre == "martingala":
         return Martingala(apuesta_inicial)
 
-    elif nombre == "d'alembert":
+    elif nombre == "fibonacci":
+        return Fibonacci(apuesta_inicial)
+
+    elif nombre == "dalembert":
         return DAlembert(apuesta_inicial)
 
-    elif nombre == "paroli":
-        return Paroli(apuesta_inicial)
-
     else:
-        return ApuestaFija(apuesta_inicial)
+        return EstrategiaFija(apuesta_inicial)
 
 
-# ===========================================
-# PRUEBA
-# ===========================================
+# ==========================================
+# PRUEBAS
+# ==========================================
 
 if __name__ == "__main__":
 
     estrategia = crear_estrategia("Martingala", 10)
 
-    print("Apuesta inicial:", estrategia.obtener_apuesta())
+    print("Apuesta inicial:", estrategia.apuesta_actual)
 
-    estrategia.perder()
-    print("Pierde ->", estrategia.obtener_apuesta())
+    for resultado in [False, False, True, False, True]:
 
-    estrategia.perder()
-    print("Pierde ->", estrategia.obtener_apuesta())
+        apuesta = estrategia.actualizar(resultado)
 
-    estrategia.ganar()
-    print("Gana ->", estrategia.obtener_apuesta())
+        print(
+            "Ganó:", resultado,
+            "-> Nueva apuesta:", apuesta
+        )
