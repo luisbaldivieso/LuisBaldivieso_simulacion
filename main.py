@@ -33,7 +33,7 @@ def abrir_covid():
 
 
 def abrir_quinoa():
-    abrir_script(os.path.join(BASE_PATH, "quinoa", "quinoa.py"))
+    abrir_script(os.path.join(BASE_PATH, "quinoa", "quinua.py"))
 
 
 def salir():

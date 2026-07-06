@@ -1,139 +1,176 @@
 """
-=========================================================
-INTERFAZ GRÁFICA
-Simulación de una Planta Procesadora de Quinua
-=========================================================
+interfaz.py
+Interfaz gráfica del simulador de la planta procesadora de quinua.
 """
 
-import matplotlib.pyplot as plt
+import tkinter as tk
+from tkinter import ttk
 
-from simulacion import resolver_modelo
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+from simulador import rk4
+from graficos import Graficos
+from reportes import exportar_csv, exportar_imagen
+from utilidades import validar_numero, mostrar_error
 
 
-def iniciar():
+class Ventana(tk.Tk):
 
-    # ==========================
-    # Parámetros iniciales
-    # ==========================
+    def __init__(self):
 
-    alpha = 0.25
-    beta = 0.08
-    delta = 0.04
-    gamma = 0.30
+        super().__init__()
 
-    stock_inicial = 10000
-    procesamiento_inicial = 2000
+        self.title("Simulador Planta Procesadora de Quinua")
+        self.geometry("1200x800")
 
-    tiempo_final = 60
+        self.tiempo = None
+        self.stock = None
+        self.procesamiento = None
 
-    # ==========================
-    # Ejecutar simulación
-    # ==========================
+        self.graficos = Graficos()
 
-    tiempo, stock, procesamiento = resolver_modelo(
-        alpha,
-        beta,
-        delta,
-        gamma,
-        stock_inicial,
-        procesamiento_inicial,
-        tiempo_final
-    )
+        self.crear_widgets()
 
-    # ==========================
-    # Crear ventana
-    # ==========================
+    def crear_widgets(self):
 
-    fig, axs = plt.subplots(1, 2, figsize=(15, 7))
+        panel = ttk.Frame(self)
+        panel.pack(side="left", fill="y", padx=10, pady=10)
 
-    fig.suptitle(
-        "Simulación de una Planta Procesadora de Quinua",
-        fontsize=16,
-        fontweight="bold"
-    )
+        datos = [
 
-    # =====================================================
-    # GRÁFICO 1
-    # =====================================================
+            ("Stock inicial", "10000"),
+            ("Procesamiento inicial", "2000"),
+            ("Alpha", "0.05"),
+            ("Beta", "0.00001"),
+            ("Delta", "0.00002"),
+            ("Gamma", "0.03"),
+            ("Tiempo total", "120"),
+            ("Paso dt", "0.5")
 
-    axs[0].plot(
-        tiempo,
-        stock,
-        color="green",
-        linewidth=2,
-        label="Stock de Quinua"
-    )
+        ]
 
-    axs[0].plot(
-        tiempo,
-        procesamiento,
-        color="orange",
-        linewidth=2,
-        label="Procesamiento"
-    )
+        self.entradas = {}
 
-    axs[0].set_title("Evolución en el Tiempo")
+        for texto, valor in datos:
 
-    axs[0].set_xlabel("Tiempo")
+            ttk.Label(panel, text=texto).pack(anchor="w")
 
-    axs[0].set_ylabel("Cantidad")
+            e = ttk.Entry(panel, width=20)
 
-    axs[0].grid(True)
+            e.insert(0, valor)
 
-    axs[0].legend()
+            e.pack(pady=3)
 
-    # =====================================================
-    # GRÁFICO 2
-    # =====================================================
+            self.entradas[texto] = e
 
-    axs[1].plot(
-        stock,
-        procesamiento,
-        color="blue",
-        linewidth=2
-    )
+        ttk.Button(
 
-    axs[1].scatter(
-        stock[0],
-        procesamiento[0],
-        color="red",
-        s=80,
-        label="Inicio"
-    )
+            panel,
+            text="Ejecutar simulación",
+            command=self.simular
 
-    axs[1].scatter(
-        stock[-1],
-        procesamiento[-1],
-        color="black",
-        s=80,
-        label="Final"
-    )
+        ).pack(fill="x", pady=10)
 
-    axs[1].set_title("Espacio de Fase")
+        ttk.Button(
 
-    axs[1].set_xlabel("Stock de Quinua")
+            panel,
+            text="Exportar CSV",
+            command=self.exportar_csv
 
-    axs[1].set_ylabel("Procesamiento")
+        ).pack(fill="x", pady=5)
 
-    axs[1].grid(True)
+        ttk.Button(
 
-    axs[1].legend()
+            panel,
+            text="Guardar gráfico",
+            command=self.exportar_imagen
 
-    # =====================================================
-    # Texto informativo
-    # =====================================================
+        ).pack(fill="x", pady=5)
 
-    plt.figtext(
-        0.5,
-        0.02,
+        self.canvas = FigureCanvasTkAgg(
+
+            self.graficos.obtener_figura(),
+            master=self
+
+        )
+
+        self.canvas.draw()
+
+        self.canvas.get_tk_widget().pack(
+
+            side="right",
+            fill="both",
+            expand=True,
+            padx=10,
+            pady=10
+
+        )
+
+    def simular(self):
+
+        valores = []
+
+        for entrada in self.entradas.values():
+
+            texto = entrada.get()
+
+            if not validar_numero(texto):
+
+                mostrar_error("Todos los valores deben ser numéricos.")
+
+                return
+
+            valores.append(float(texto))
+
         (
-            f"Stock Inicial: {stock_inicial:.0f} kg     "
-            f"Procesamiento Inicial: {procesamiento_inicial:.0f} kg/día"
-        ),
-        ha="center",
-        fontsize=11
-    )
+            x0,
+            y0,
+            alpha,
+            beta,
+            delta,
+            gamma,
+            tiempo_total,
+            dt
 
-    plt.tight_layout()
+        ) = valores
 
-    plt.show()
+        self.tiempo, self.stock, self.procesamiento = rk4(
+
+            x0,
+            y0,
+            alpha,
+            beta,
+            delta,
+            gamma,
+            tiempo_total,
+            dt
+
+        )
+
+        self.graficos.actualizar(
+
+            self.tiempo,
+            self.stock,
+            self.procesamiento
+
+        )
+
+        self.canvas.draw()
+
+    def exportar_csv(self):
+
+        exportar_csv(
+
+            self.tiempo,
+            self.stock,
+            self.procesamiento
+
+        )
+
+    def exportar_imagen(self):
+
+        exportar_imagen(
+
+            self.graficos.obtener_figura()
+
+        )
