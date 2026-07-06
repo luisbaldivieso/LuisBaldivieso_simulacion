@@ -1,89 +1,91 @@
 import tkinter as tk
-from tkinter import messagebox
+import subprocess
 
 # ======================================
-# FUNCIONES (por ahora)
+# FUNCION GENERAL
 # ======================================
-import subprocess
-import os
+
+def abrir(path):
+    try:
+        subprocess.Popen(["python", path])
+    except Exception as e:
+        print("Error:", e)
+
+
+# ======================================
+# RUTAS BASE (IMPORTANTE PARA EVITAR ERRORES)
+# ======================================
+
+BASE = r"C:\Users\LENOVO\Desktop\Simulacion\proyecto_final\Calculadora\\"
+
+# ======================================
+# 20 MÉTODOS
+# ======================================
+
+# GENERADORES
 def cuadrados_medios():
-   subprocess.Popen([
-        "python",
-        r"C:\Users\LENOVO\Desktop\Simulacion\proyecto_final\Calculadora\cuadrados_medios.py"
-    ])
+    abrir(BASE + "cuadrados_medios.py")
+
 def productos_medios():
-    subprocess.Popen([
-        "python",
-        r"C:\Users\LENOVO\Desktop\Simulacion\proyecto_final\Calculadora\productos_medios.py"
-    ])
+    abrir(BASE + "productos_medios.py")
 
 def multiplicador_constante():
-    subprocess.Popen([
-        "python",
-        r"C:\Users\LENOVO\Desktop\Simulacion\proyecto_final\Calculadora\multiplicador_constante.py"
-    ])
+    abrir(BASE + "multiplicador_constante.py")
+
 def congruencial_lineal():
-    subprocess.Popen([
-        "python",
-        r"C:\Users\LENOVO\Desktop\Simulacion\proyecto_final\Calculadora\congruencial_lineal.py"
-    ])
+    abrir(BASE + "congruencial_lineal.py")
 
 def congruencial_multiplicativo():
-    subprocess.Popen([
-        "python",
-        r"C:\Users\LENOVO\Desktop\Simulacion\proyecto_final\Calculadora\congruencial_multiplicativo.py"
-    ])
+    abrir(BASE + "congruencial_multiplicativo.py")
 
 def congruencial_aditivo():
-    subprocess.Popen([
-        "python",
-        r"C:\Users\LENOVO\Desktop\Simulacion\proyecto_final\Calculadora\congruencial_aditivo.py"
-    ])
+    abrir(BASE + "congruencial_aditivo.py")
 
-def congruencial_no_lineal():
-    subprocess.Popen([
-        "python",
-        r"C:\Users\LENOVO\Desktop\Simulacion\proyecto_final\Calculadora\congruencial_no_lineal.py"
-    ])
 
+# PRUEBAS
 def prueba_media():
-    subprocess.Popen([
-        "python",
-        r"C:\Users\LENOVO\Desktop\Simulacion\proyecto_final\Calculadora\prueba_media.py"
-    ])
+    abrir(BASE + "prueba_media.py")
 
 def prueba_varianza():
-    messagebox.showinfo("Prueba Varianza", "Módulo en construcción")
+    abrir(BASE + "prueba_varianza.py")
 
 def chi_cuadrado():
-    messagebox.showinfo("Chi Cuadrado", "Módulo en construcción")
+    abrir(BASE + "chi_cuadrado.py")
 
 def kolmogorov():
-    messagebox.showinfo("Kolmogorov", "Módulo en construcción")
+    abrir(BASE + "kolmogorov.py")
 
-def independencia():
-    messagebox.showinfo("Independencia", "Módulo en construcción")
 
+# DISTRIBUCIONES (PDF)
 def uniforme():
-    messagebox.showinfo("Distribución Uniforme", "Módulo en construcción")
+    abrir(BASE + "uniforme.py")
 
 def exponencial():
-    messagebox.showinfo("Distribución Exponencial", "Módulo en construcción")
+    abrir(BASE + "exponencial.py")
+
+def gamma():
+    abrir(BASE + "gamma.py")
+
+def erlang():
+    abrir(BASE + "erlang.py")
 
 def normal():
-    messagebox.showinfo("Distribución Normal", "Módulo en construcción")
+    abrir(BASE + "normal.py")
 
-def poisson():
-    messagebox.showinfo("Distribución Poisson", "Módulo en construcción")
+def weibull():
+    abrir(BASE + "weibull.py")
+
+def bernoulli():
+    abrir(BASE + "bernoulli.py")
 
 def binomial():
-    messagebox.showinfo("Distribución Binomial", "Módulo en construcción")
+    abrir(BASE + "binomial.py")   # 🔥 ESTE ERA EL PROBLEMA
+
+def poisson():
+    abrir(BASE + "poisson.py")
 
 def montecarlo():
-    messagebox.showinfo("Monte Carlo", "Módulo en construcción")
-
-def volver():
-    ventana.destroy()
+    abrir(BASE + "montecarlo.py")
 
 
 # ======================================
@@ -91,8 +93,8 @@ def volver():
 # ======================================
 
 ventana = tk.Tk()
-ventana.title("Calculadora de Simulación")
-ventana.geometry("1300x750")
+ventana.title("Simulación - 20 Métodos")
+ventana.geometry("1000x650")
 ventana.configure(bg="#0F172A")
 ventana.resizable(False, False)
 
@@ -100,150 +102,84 @@ ventana.resizable(False, False)
 # TITULO
 # ======================================
 
-titulo = tk.Label(
+tk.Label(
     ventana,
-    text="CALCULADORA DE SIMULACIÓN",
-    font=("Arial",24,"bold"),
+    text="CALCULADORA DE SIMULACIÓN (20 MÉTODOS)",
+    font=("Arial", 16, "bold"),
     fg="white",
     bg="#0F172A"
-)
-
-titulo.pack(pady=10)
+).pack(pady=10)
 
 # ======================================
-# CONTENEDOR PRINCIPAL
+# FRAME PRINCIPAL
 # ======================================
 
-contenedor = tk.Frame(
-    ventana,
-    bg="#0F172A"
-)
+contenedor = tk.Frame(ventana, bg="#0F172A")
+contenedor.pack(expand=True)
 
-contenedor.pack(fill="both", expand=True)
-
-# ======================================
-# MENU IZQUIERDO
-# ======================================
-
-menu = tk.Frame(
-    contenedor,
-    width=340,
-    bg="#1E293B"
-)
-
-menu.pack(side="left", fill="y")
-menu.pack_propagate(False)
+panel = tk.Frame(contenedor, bg="#1E293B", padx=20, pady=20)
+panel.pack()
 
 # ======================================
-# PANEL DERECHO
+# BOTÓN
 # ======================================
 
-panel = tk.Frame(
-    contenedor,
-    bg="white"
-)
-
-panel.pack(side="right", fill="both", expand=True)
-
-mensaje = tk.Label(
-    panel,
-    text="""
-
-Bienvenido a la Calculadora de Simulación
-
-Seleccione un método del menú izquierdo.
-
-Aquí aparecerán todos los ejercicios del PDF.
-
-
-""",
-    font=("Arial",18),
-    bg="white"
-)
-
-mensaje.pack(expand=True)
-
-# ======================================
-# BOTONES
-# ======================================
-
-def crear_boton(texto, comando):
-
-    tk.Button(
-        menu,
+def boton(texto, comando):
+    return tk.Button(
+        panel,
         text=texto,
         command=comando,
-        width=33,
-        height=2,
+        width=30,
         bg="#2563EB",
         fg="white",
-        font=("Arial",11,"bold")
-    ).pack(pady=3)
+        font=("Arial", 10, "bold")
+    )
+
+# ======================================
+# GRID 2 COLUMNAS (MITAD / MITAD)
+# ======================================
+
+# TITULOS
+tk.Label(panel, text="GENERADORES", bg="#1E293B", fg="white",
+         font=("Arial", 12, "bold")).grid(row=0, column=0, columnspan=2, pady=5)
+
+boton("Cuadrados Medios", cuadrados_medios).grid(row=1, column=0, pady=3)
+boton("Productos Medios", productos_medios).grid(row=1, column=1, pady=3)
+
+boton("Multiplicador Constante", multiplicador_constante).grid(row=2, column=0, pady=3)
+boton("Congruencial Lineal", congruencial_lineal).grid(row=2, column=1, pady=3)
+
+boton("Congruencial Multiplicativo", congruencial_multiplicativo).grid(row=3, column=0, pady=3)
+boton("Congruencial Aditivo", congruencial_aditivo).grid(row=3, column=1, pady=3)
 
 
-tk.Label(
-    menu,
-    text="GENERADORES",
-    bg="#1E293B",
-    fg="white",
-    font=("Arial",14,"bold")
-).pack(pady=8)
+tk.Label(panel, text="PRUEBAS", bg="#1E293B", fg="white",
+         font=("Arial", 12, "bold")).grid(row=4, column=0, columnspan=2, pady=8)
 
-crear_boton("Cuadrados Medios", cuadrados_medios)
-crear_boton("Productos Medios", productos_medios)
-crear_boton("Multiplicador Constante", multiplicador_constante)
-crear_boton("Congruencial Lineal", congruencial_lineal)
-crear_boton("Congruencial Multiplicativo", congruencial_multiplicativo)
-crear_boton("Congruencial Aditivo", congruencial_aditivo)
-crear_boton("Congruencial No Lineal", congruencial_no_lineal)
+boton("Prueba Media", prueba_media).grid(row=5, column=0, pady=3)
+boton("Prueba Varianza", prueba_varianza).grid(row=5, column=1, pady=3)
 
-tk.Label(
-    menu,
-    text="PRUEBAS",
-    bg="#1E293B",
-    fg="white",
-    font=("Arial",14,"bold")
-).pack(pady=8)
+boton("Chi Cuadrado", chi_cuadrado).grid(row=6, column=0, pady=3)
+boton("Kolmogorov", kolmogorov).grid(row=6, column=1, pady=3)
 
-crear_boton("Prueba Media", prueba_media)
-crear_boton("Prueba Varianza", prueba_varianza)
-crear_boton("Chi Cuadrado", chi_cuadrado)
-crear_boton("Kolmogorov", kolmogorov)
-crear_boton("Independencia", independencia)
 
-tk.Label(
-    menu,
-    text="DISTRIBUCIONES",
-    bg="#1E293B",
-    fg="white",
-    font=("Arial",14,"bold")
-).pack(pady=8)
+tk.Label(panel, text="DISTRIBUCIONES", bg="#1E293B", fg="white",
+         font=("Arial", 12, "bold")).grid(row=7, column=0, columnspan=2, pady=8)
 
-crear_boton("Uniforme", uniforme)
-crear_boton("Exponencial", exponencial)
-crear_boton("Normal", normal)
-crear_boton("Poisson", poisson)
-crear_boton("Binomial", binomial)
+boton("Uniforme", uniforme).grid(row=8, column=0, pady=3)
+boton("Exponencial", exponencial).grid(row=8, column=1, pady=3)
 
-tk.Label(
-    menu,
-    text="SIMULACIÓN",
-    bg="#1E293B",
-    fg="white",
-    font=("Arial",14,"bold")
-).pack(pady=8)
+boton("Gamma", gamma).grid(row=9, column=0, pady=3)
+boton("Erlang", erlang).grid(row=9, column=1, pady=3)
 
-crear_boton("Monte Carlo", montecarlo)
+boton("Normal", normal).grid(row=10, column=0, pady=3)
+boton("Weibull", weibull).grid(row=10, column=1, pady=3)
 
-tk.Button(
-    menu,
-    text="← Volver",
-    command=volver,
-    width=33,
-    height=2,
-    bg="#DC2626",
-    fg="white",
-    font=("Arial",11,"bold")
-).pack(pady=15)
+boton("Bernoulli", bernoulli).grid(row=11, column=0, pady=3)
+boton("Binomial", binomial).grid(row=11, column=1, pady=3)
+
+boton("Poisson", poisson).grid(row=12, column=0, pady=3)
+boton("Monte Carlo", montecarlo).grid(row=12, column=1, pady=3)
+
 
 ventana.mainloop()
